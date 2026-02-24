@@ -90,17 +90,32 @@ Import this file into Postman to test the endpoints.
 - `PATCH /api-keys/:id/rotate`: Rotate a key (Auth required).
 - `GET /api/protected-data`: Access data using an API Key (API Key required via `x-api-key` header).
 
-## Deployment (AWS)
-- **Deployment URL**: `https://api.peppermint.aws-demo.com` (Placeholder)
-- **Status**: Ready for production deployment using AWS App Runner.
+## Deployment (AWS Elastic Beanstalk)
+A `Procfile` is included for AWS Elastic Beanstalk deployment.
 
-A `Dockerfile` is provided for containerized deployment.
+### Steps for AWS Elastic Beanstalk Deployment:
+1. **Initialize EB CLI**:
+   ```bash
+   eb init -p node.js peppermint-backend
+   ```
+2. **Create Environment**:
+   ```bash
+   eb create peppermint-prod
+   ```
+3. **Configure Environment Variables**:
+   Set `MONGODB_URI`, `JWT_SECRET`, and `MAX_API_KEYS_PER_USER` in the Elastic Beanstalk console or via CLI:
+   ```bash
+   eb setenv MONGODB_URI=... JWT_SECRET=...
+   ```
+4. **Deploy**:
+   ```bash
+   eb deploy
+   ```
 
-### Steps for AWS Deployment (App Runner / ECS):
-1. Build the image: `docker build -t peppermint-backend .`
-2. Push to Amazon ECR.
-3. Deploy to AWS App Runner or ECS using the ECR image.
-4. Configure environment variables (`MONGODB_URI`, `JWT_SECRET`, etc.) in the AWS Console.
+- **Deployment URL**: `http://peppermint-prod.us-east-1.elasticbeanstalk.com` (Example)
+- **Status**: Ready for production deployment using AWS Elastic Beanstalk.
+
+A `Dockerfile` is also provided if containerized deployment is preferred.
 
 ---
 **Submission**: GitHub repository URL submitted to operations@runpeppermint.com.
