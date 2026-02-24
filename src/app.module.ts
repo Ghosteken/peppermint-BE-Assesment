@@ -17,9 +17,18 @@ import { ApiKeysModule } from './api-keys/api-keys.module';
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        uri: configService.get<string>('MONGODB_URI'),
-      }),
+      useFactory: async (configService: ConfigService) => {
+        const uri =
+          configService.get<string>('MONGODB_URI') ||
+          configService.get<string>('MONGO_URI');
+
+        if (!uri) {
+          console.error('CRITICAL ERROR: MONGODB_URI or MONGO_URI is missing!');
+          throw new Error('Database connection URI not provided');
+        }
+
+        return { uri };
+      },
       inject: [ConfigService],
     }),
     ThrottlerModule.forRoot([

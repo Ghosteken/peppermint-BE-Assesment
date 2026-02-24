@@ -103,7 +103,16 @@ A `Procfile` is included for AWS Elastic Beanstalk deployment.
    eb create peppermint-prod
    ```
 3. **Configure Environment Variables**:
-   Set `MONGODB_URI`, `JWT_SECRET`, and `MAX_API_KEYS_PER_USER` in the Elastic Beanstalk console or via CLI:
+   Set the following variables in the Elastic Beanstalk console (**Environment → Configuration → Environment properties**):
+   
+   | Key | Example Value |
+   |-----|---------------|
+   | `MONGODB_URI` (or `MONGO_URI`) | `mongodb+srv://user:pass@cluster.mongodb.net/peppermint` |
+   | `JWT_SECRET` | `your-secure-secret-key` |
+   | `MAX_API_KEYS_PER_USER` | `3` |
+   | `PORT` | `8080` (Default if not set) |
+
+   You can also set them via CLI:
    ```bash
    eb setenv MONGODB_URI=... JWT_SECRET=...
    ```
