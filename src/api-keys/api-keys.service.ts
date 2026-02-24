@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import * as crypto from 'crypto';
 import { ApiKey, ApiKeyDocument } from './api-key.schema';
 import { AccessLog, AccessLogDocument } from './access-log.schema';
+import { AuditLog, AuditLogDocument } from './audit-log.schema';
 
 @Injectable()
 export class ApiKeysService {
@@ -18,12 +19,18 @@ export class ApiKeysService {
     @InjectModel(ApiKey.name) private apiKeyModel: Model<ApiKeyDocument>,
     @InjectModel(AccessLog.name)
     private accessLogModel: Model<AccessLogDocument>,
+    @InjectModel(AuditLog.name)
+    private auditLogModel: Model<AuditLogDocument>,
     private configService: ConfigService,
   ) {
     this.maxKeys = this.configService.get<number>('MAX_API_KEYS_PER_USER') || 3;
   }
 
-  async generateKey(userId: string, name: string): Promise<ApiKeyDocument> {
+  async generateKey(
+    userId: string,
+    name: string,
+    ip?: string,
+  ): Promise<ApiKeyDocument> {
     const activeKeysCount = await this.apiKeyModel.countDocuments({
       user: new Types.ObjectId(userId),
       isRevoked: false,
@@ -50,7 +57,16 @@ export class ApiKeysService {
       expiresAt,
     });
 
-    return apiKey.save();
+    const savedKey = await apiKey.save();
+
+    await this.logAuditEvent(
+      userId,
+      'API_KEY_CREATED',
+      { apiKeyId: savedKey._id, name },
+      ip,
+    );
+
+    return savedKey;
   }
 
   async listKeys(userId: string): Promise<ApiKeyDocument[]> {
@@ -61,7 +77,11 @@ export class ApiKeysService {
       .exec();
   }
 
-  async revokeKey(userId: string, keyId: string): Promise<ApiKeyDocument> {
+  async revokeKey(
+    userId: string,
+    keyId: string,
+    ip?: string,
+  ): Promise<ApiKeyDocument> {
     const apiKey = await this.apiKeyModel.findOne({
       _id: new Types.ObjectId(keyId),
       user: new Types.ObjectId(userId),
@@ -72,12 +92,22 @@ export class ApiKeysService {
     }
 
     apiKey.isRevoked = true;
-    return apiKey.save();
+    const savedKey = await apiKey.save();
+
+    await this.logAuditEvent(
+      userId,
+      'API_KEY_REVOKED',
+      { apiKeyId: savedKey._id },
+      ip,
+    );
+
+    return savedKey;
   }
 
   async rotateKey(
     userId: string,
     keyId: string,
+    ip?: string,
   ): Promise<{ newKey: ApiKeyDocument; oldKey: ApiKeyDocument }> {
     const oldKey = await this.apiKeyModel.findOne({
       _id: new Types.ObjectId(keyId),
@@ -94,7 +124,17 @@ export class ApiKeysService {
     await oldKey.save();
 
     // Create new key with same name
-    const newKey = await this.generateKey(userId, oldKey.name);
+    const newKey = await this.generateKey(userId, oldKey.name, ip);
+
+    await this.logAuditEvent(
+      userId,
+      'API_KEY_ROTATED',
+      {
+        oldKeyId: oldKey._id,
+        newKeyId: newKey._id,
+      },
+      ip,
+    );
 
     return { newKey, oldKey };
   }
@@ -128,6 +168,21 @@ export class ApiKeysService {
       method,
       ipAddress,
       metadata,
+    });
+    return log.save();
+  }
+
+  async logAuditEvent(
+    userId: string,
+    action: string,
+    metadata?: Record<string, any>,
+    ip?: string,
+  ): Promise<AuditLogDocument> {
+    const log = new this.auditLogModel({
+      userId: new Types.ObjectId(userId),
+      action,
+      metadata,
+      ip,
     });
     return log.save();
   }

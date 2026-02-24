@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peppermint API Key Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <header class="mb-8 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-green-600">Peppermint</h1>
+            <div id="auth-controls">
+                <button onclick="showLogin()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 mr-2">Login</button>
+                <button onclick="showRegister()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Register</button>
+            </div>
+            <div id="user-info" class="hidden flex items-center">
+                <span id="username" class="mr-4 font-medium"></span>
+                <button onclick="logout()" class="text-red-500 hover:underline">Logout</button>
+            </div>
+        </header>
+
+        <main id="app">
+            <!-- Auth Form -->
+            <div id="auth-section" class="max-w-md mx-auto bg-white p-8 rounded shadow-md hidden">
+                <h2 id="auth-title" class="text-2xl mb-4 font-semibold text-center">Login</h2>
+                <form id="auth-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="email" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div id="name-field" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700">Name</label>
+                        <input type="text" id="name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Password</label>
+                        <input type="password" id="password" required class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+                    <button type="submit" id="auth-btn" class="w-full bg-green-600 text-white py-2 rounded font-semibold hover:bg-green-700">Submit</button>
+                </form>
+            </div>
+
+            <!-- Dashboard -->
+            <div id="dashboard" class="hidden space-y-8">
+                <div class="bg-white p-6 rounded shadow-md">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold">My API Keys</h2>
+                        <button onclick="generateKey()" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">+ Generate Key</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expires At</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="keys-list" class="bg-white divide-y divide-gray-200">
+                                <!-- Keys will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modals -->
+        <div id="key-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+            <div class="bg-white p-8 rounded shadow-xl max-w-lg w-full">
+                <h3 class="text-xl font-bold mb-4">API Key Generated</h3>
+                <p class="mb-4 text-gray-600">Please copy your API key now. You won't be able to see it again!</p>
+                <div class="bg-gray-100 p-4 rounded mb-6 break-all font-mono" id="new-key-value"></div>
+                <button onclick="closeModal()" class="w-full bg-blue-600 text-white py-2 rounded font-semibold hover:bg-blue-700">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user'));
+        let isLogin = true;
+
+        const API_BASE = '/api';
+
+        async function init() {
+            if (token) {
+                showDashboard();
+                loadKeys();
+            } else {
+                showLogin();
+            }
+        }
+
+        function showLogin() {
+            isLogin = true;
+            document.getElementById('auth-title').innerText = 'Login';
+            document.getElementById('auth-btn').innerText = 'Login';
+            document.getElementById('name-field').classList.add('hidden');
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+        }
+
+        function showRegister() {
+            isLogin = false;
+            document.getElementById('auth-title').innerText = 'Register';
+            document.getElementById('auth-btn').innerText = 'Register';
+            document.getElementById('name-field').classList.remove('hidden');
+            document.getElementById('auth-section').classList.remove('hidden');
+            document.getElementById('dashboard').classList.add('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('auth-section').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('auth-controls').classList.add('hidden');
+            document.getElementById('user-info').classList.remove('hidden');
+            if (user) document.getElementById('username').innerText = user.email;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            token = null;
+            user = null;
+            location.reload();
+        }
+
+        document.getElementById('auth-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value;
+
+            const url = isLogin ? `${API_BASE}/auth/login` : `${API_BASE}/auth/register`;
+            const body = isLogin ? { email, password } : { email, password, name };
+
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (data.access_token) {
+                    token = data.access_token;
+                    localStorage.setItem('token', token);
+                    // For simplicity, we decode the JWT to get user info if needed
+                    // For now just assume success
+                    showDashboard();
+                    loadKeys();
+                } else {
+                    alert(data.message || 'Authentication failed');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        };
+
+        async function loadKeys() {
+            try {
+                const res = await fetch(`${API_BASE}/api-keys`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const keys = await res.json();
+                const list = document.getElementById('keys-list');
+                list.innerHTML = '';
+                keys.forEach(key => {
+                    const row = `
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap">${key.name}</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${key.isRevoked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}">
+                                    ${key.isRevoked ? 'Revoked' : 'Active'}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${key.expiresAt ? new Date(key.expiresAt).toLocaleDateString() : 'N/A'}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                ${!key.isRevoked ? `
+                                    <button onclick="rotateKey('${key._id}')" class="text-blue-600 hover:text-blue-900 mr-4">Rotate</button>
+                                    <button onclick="revokeKey('${key._id}')" class="text-red-600 hover:text-red-900">Revoke</button>
+                                ` : '-'}
+                            </td>
+                        </tr>
+                    `;
+                    list.innerHTML += row;
+                });
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function generateKey() {
+            const name = prompt('Enter a name for your API key:');
+            if (!name) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/api-keys`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name })
+                });
+                const data = await res.json();
+                if (data.key) {
+                    document.getElementById('new-key-value').innerText = data.key;
+                    document.getElementById('key-modal').classList.remove('hidden');
+                    loadKeys();
+                } else {
+                    alert(data.message || 'Failed to generate key');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function revokeKey(id) {
+            if (!confirm('Are you sure you want to revoke this key?')) return;
+            try {
+                await fetch(`${API_BASE}/api-keys/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                loadKeys();
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        async function rotateKey(id) {
+            if (!confirm('Are you sure you want to rotate this key? A new key will be generated and this one will be revoked.')) return;
+            try {
+                const res = await fetch(`${API_BASE}/api-keys/${id}/rotate`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (data.newKey && data.newKey.key) {
+                    document.getElementById('new-key-value').innerText = data.newKey.key;
+                    document.getElementById('key-modal').classList.remove('hidden');
+                    loadKeys();
+                } else {
+                    alert('Failed to rotate key');
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('key-modal').classList.add('hidden');
+        }
+
+        init();
+    </script>
+</body>
+</html>
