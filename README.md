@@ -88,8 +88,12 @@ Import this file into Postman to test the endpoints.
 - `GET /api-keys`: List user's keys (Auth required).
 - `DELETE /api-keys/:id`: Revoke a key (Auth required).
 - `PATCH /api-keys/:id/rotate`: Rotate a key (Auth required).
+- `GET /api/protected-data`: Access data using an API Key (API Key required via `x-api-key` header).
 
 ## Deployment (AWS)
+- **Deployment URL**: `https://api.peppermint.aws-demo.com` (Placeholder)
+- **Status**: Ready for production deployment using AWS App Runner.
+
 A `Dockerfile` is provided for containerized deployment.
 
 ### Steps for AWS Deployment (App Runner / ECS):

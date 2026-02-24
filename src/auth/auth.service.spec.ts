@@ -79,15 +79,26 @@ describe('AuthService', () => {
       const result = await service.login({
         email: 'test@example.com',
         _id: 'userid',
+        name: 'Test User',
       });
-      expect(result).toEqual({ access_token: 'token' });
+      expect(result).toEqual({
+        access_token: 'token',
+        user: {
+          _id: 'userid',
+          email: 'test@example.com',
+          name: 'Test User',
+        },
+      });
     });
   });
 
   describe('register', () => {
     it('should create and login user', async () => {
       usersService.findByEmail.mockResolvedValue(null);
-      usersService.create.mockResolvedValue(mockUser);
+      usersService.create.mockResolvedValue({
+        ...mockUser,
+        name: 'Test User',
+      });
       jwtService.sign.mockReturnValue('token');
 
       const result = await service.register(
@@ -95,7 +106,14 @@ describe('AuthService', () => {
         'password',
         'Test User',
       );
-      expect(result).toEqual({ access_token: 'token' });
+      expect(result).toEqual({
+        access_token: 'token',
+        user: {
+          _id: 'userid',
+          email: 'test@example.com',
+          name: 'Test User',
+        },
+      });
     });
 
     it('should throw UnauthorizedException if user exists', async () => {
