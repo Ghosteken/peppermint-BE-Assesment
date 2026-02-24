@@ -18,11 +18,11 @@ export class UsersService {
     return user.save();
   }
 
-  async findByEmail(email: string): Promise<UserDocument | undefined> {
+  async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
   }
 
-  async findById(id: string): Promise<UserDocument | undefined> {
+  async findById(id: string): Promise<UserDocument | null> {
     return this.userModel.findById(id).exec();
   }
 }
