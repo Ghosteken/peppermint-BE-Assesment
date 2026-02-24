@@ -55,6 +55,7 @@ export class ApiKeysService {
 
   async listKeys(userId: string): Promise<ApiKeyDocument[]> {
     return this.apiKeyModel
+
       .find({ user: new Types.ObjectId(userId) } as any)
       .select('-key')
       .exec();
