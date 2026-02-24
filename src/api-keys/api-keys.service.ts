@@ -32,7 +32,7 @@ export class ApiKeysService {
         { expiresAt: { $exists: false } },
         { expiresAt: { $gt: new Date() } },
       ],
-    });
+    } as any);
 
     if (activeKeysCount >= this.maxKeys) {
       throw new BadRequestException(
@@ -56,7 +56,7 @@ export class ApiKeysService {
 
   async listKeys(userId: string): Promise<ApiKeyDocument[]> {
     return this.apiKeyModel
-      .find({ user: new Types.ObjectId(userId) })
+      .find({ user: new Types.ObjectId(userId) } as any)
       .select('-key')
       .exec();
   }
@@ -65,7 +65,7 @@ export class ApiKeysService {
     const apiKey = await this.apiKeyModel.findOne({
       _id: new Types.ObjectId(keyId),
       user: new Types.ObjectId(userId),
-    });
+    } as any);
 
     if (!apiKey) {
       throw new NotFoundException('API Key not found');
@@ -83,7 +83,7 @@ export class ApiKeysService {
       _id: new Types.ObjectId(keyId),
       user: new Types.ObjectId(userId),
       isRevoked: false,
-    });
+    } as any);
 
     if (!oldKey) {
       throw new NotFoundException('Active API Key not found');
