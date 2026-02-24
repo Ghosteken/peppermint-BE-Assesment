@@ -23,6 +23,11 @@ export class AuthService {
     const payload = { email: user.email, sub: user._id };
     return {
       access_token: this.jwtService.sign(payload),
+      user: {
+        _id: user._id,
+        email: user.email,
+        name: user.name,
+      },
     };
   }
 
@@ -33,5 +38,14 @@ export class AuthService {
     }
     const user = await this.usersService.create(email, pass, name);
     return this.login(user);
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    const { password, ...result } = user.toObject();
+    return result;
   }
 }

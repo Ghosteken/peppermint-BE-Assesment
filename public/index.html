@@ -117,7 +117,9 @@
             document.getElementById('dashboard').classList.remove('hidden');
             document.getElementById('auth-controls').classList.add('hidden');
             document.getElementById('user-info').classList.remove('hidden');
-            if (user) document.getElementById('username').innerText = user.email;
+            if (user) {
+                document.getElementById('username').innerText = user.name ? `${user.name} (${user.email})` : user.email;
+            }
         }
 
         function logout() {
@@ -146,9 +148,10 @@
                 const data = await res.json();
                 if (data.access_token) {
                     token = data.access_token;
+                    user = data.user;
                     localStorage.setItem('token', token);
-                    // For simplicity, we decode the JWT to get user info if needed
-                    // For now just assume success
+                    localStorage.setItem('user', JSON.stringify(user));
+                    
                     showDashboard();
                     loadKeys();
                 } else {
