@@ -121,8 +121,8 @@ A `Procfile` is included for AWS Elastic Beanstalk deployment.
    eb deploy
    ```
 
-- **Deployment URL**: `http://peppermint-prod.us-east-1.elasticbeanstalk.com` (Example)
-- **Status**: Ready for production deployment using AWS Elastic Beanstalk.
+- **Deployment URL**: `http://ppm-api-env-prod.eba-ps9mgicu.eu-north-1.elasticbeanstalk.com/`
+- **Status**: Live on AWS Elastic Beanstalk (eu-north-1).
 
 A `Dockerfile` is also provided if containerized deployment is preferred.
 
