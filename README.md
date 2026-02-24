@@ -126,5 +126,3 @@ A `Procfile` is included for AWS Elastic Beanstalk deployment.
 
 A `Dockerfile` is also provided if containerized deployment is preferred.
 
----
-**Submission**: GitHub repository URL submitted to operations@runpeppermint.com.
