@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as MongooseSchema } from 'mongoose';
+import { Document, Schema as MongooseSchema, Types } from 'mongoose';
 import { User } from '../users/user.schema';
 
 export type ApiKeyDocument = ApiKey & Document;
@@ -7,7 +7,7 @@ export type ApiKeyDocument = ApiKey & Document;
 @Schema({ timestamps: true })
 export class ApiKey {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
-  user: User;
+  user: User | Types.ObjectId;
 
   @Prop({ required: true, unique: true })
   key: string;
