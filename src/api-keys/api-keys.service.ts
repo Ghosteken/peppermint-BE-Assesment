@@ -2,7 +2,6 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
-  ForbiddenException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -120,7 +119,7 @@ export class ApiKeysService {
     endpoint: string,
     method: string,
     ipAddress: string,
-    metadata?: any,
+    metadata?: Record<string, any>,
   ): Promise<AccessLogDocument> {
     const log = new this.accessLogModel({
       apiKey: new Types.ObjectId(apiKeyId),
