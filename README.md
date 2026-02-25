@@ -48,7 +48,7 @@ Create a `.env` file in the root directory (refer to `.env.example`):
 ```env
 MONGODB_URI=mongodb://localhost:27017/peppermint
 JWT_SECRET=your-secret-key
-PORT=3000
+PORT=8080
 MAX_API_KEYS_PER_USER=3
 ```
 
