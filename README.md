@@ -48,7 +48,7 @@ Create a `.env` file in the root directory (refer to `.env.example`):
 ```env
 MONGODB_URI=mongodb://localhost:27017/peppermint
 JWT_SECRET=your-secret-key
-PORT=8080
+PORT=3000
 MAX_API_KEYS_PER_USER=3
 ```
 
@@ -110,7 +110,7 @@ A `Procfile` is included for AWS Elastic Beanstalk deployment.
    | `MONGODB_URI` (or `MONGO_URI`) | `mongodb+srv://user:pass@cluster.mongodb.net/peppermint` |
    | `JWT_SECRET` | `your-secure-secret-key` |
    | `MAX_API_KEYS_PER_USER` | `3` |
-   | `PORT` | `8080` (Default if not set) |
+   | `PORT` | `3000` (Default if not set) |
 
    You can also set them via CLI:
    ```bash
